@@ -1,0 +1,27 @@
+# ALChicken - Fresh Farm Chicken E-commerce
+
+# Core
+Flask==2.3.3
+Werkzeug==2.3.7
+Jinja2==3.1.2
+MarkupSafe==2.1.3
+itsdangerous==2.1.2
+click==8.1.7
+
+# Security
+bcrypt==4.0.1
+python-dotenv==1.0.0
+
+# Production server (FIX: removed leading spaces that caused pip to skip these lines)
+gunicorn==21.2.0
+ eventlet==0.36.1
+# Optional image processing
+# Pillow==10.1.0
+
+# pip install requests==2.31.0
+#import eventlet 
+#eventlet.monkey_patch()  add later
+
+# pip install multiprocessing
+
+or ## pip install Flask==2.3.3 Werkzeug==2.3.7 Jinja2==3.1.2 MarkupSafe==2.1.3 itsdangerous==2.1.2 click==8.1.7 bcrypt==4.0.1 python-dotenv==1.0.0 gunicorn==21.2.0 eventlet==0.36.1  requests==2.31.0

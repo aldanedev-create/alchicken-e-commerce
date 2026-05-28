@@ -1,0 +1,75 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}Order Status - ALChicken{% endblock %}
+
+{% block content %}
+<div class="order-status-page">
+    <div class="container">
+        <div class="status-card">
+            <h1>Order Status</h1>
+            <p class="order-number">Order #{{ order.order_id }}</p>
+            
+            <div class="status-timeline">
+                {% for status in timeline %}
+                <div class="timeline-step {% if status.completed %}completed{% endif %}">
+                    <div class="timeline-icon">
+                        {% if status.completed %}
+                        <i class="fas fa-check-circle"></i>
+                        {% else %}
+                        <i class="fas fa-circle"></i>
+                        {% endif %}
+                    </div>
+                    <div class="timeline-content">
+                        <h3>{{ status.status }}</h3>
+                        <p>{{ status.description }}</p>
+                        {% if status.date %}
+                        <small>{{ status.date[:10] }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="order-details-status">
+                <h2>Order Details</h2>
+                <div class="details-status-grid">
+                    <div><strong>Order Date:</strong> {{ order.order_date[:10] }}</div>
+                    <div><strong>Delivery Option:</strong> {{ order.delivery_option|title }}</div>
+                    <div><strong>Total Amount:</strong> JMD {{ "%.2f"|format(order.total_amount) }}</div>
+                    <div><strong>Payment Method:</strong> {{ order.payment_method|replace('_', ' ')|title }}</div>
+                    <div><strong>Payment Status:</strong> <span class="status-badge {{ order.payment_status }}">{{ order.payment_status }}</span></div>
+                </div>
+                
+                <h3>Items Ordered</h3>
+                <table class="items-table">
+                    <thead>
+                        <tr><th>Product</th><th>Quantity</th><th>Price</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>JMD {{ "%.2f"|format(item.item_price) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Customer Note - shown to customer -->
+        {% if order.get('customer_note') %}
+        <div class="customer-note-display" style="margin:20px 0; padding:15px; background:#fff8f0; border-left:4px solid var(--primary-color); border-radius:5px;">
+            <h3 style="margin-bottom:8px;"><i class="fas fa-sticky-note" style="color:var(--primary-color);"></i> Your Note</h3>
+            <p style="margin:0; color:var(--dark-color);">{{ order.customer_note }}</p>
+        </div>
+        {% endif %}
+            
+            <div class="action-buttons">
+                <a href="{{ url_for('products_page') }}" class="btn btn-primary">Continue Shopping</a>
+                <a href="{{ url_for('contact_page') }}" class="btn btn-secondary">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

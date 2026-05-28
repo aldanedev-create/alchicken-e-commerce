@@ -1,0 +1,55 @@
+{% extends "includes/header-footer.html" %}
+ 
+{% block title %}Verify Your Identity - ALChicken{% endblock %}
+ 
+{% block content %}
+<div class="auth-page">
+    <div class="container">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div style="text-align:center; margin-bottom:20px;">
+                    <i class="fas fa-shield-alt" style="font-size:48px; color:var(--primary-color);"></i>
+                </div>
+                <h2>Two-Step Verification</h2>
+                <p style="text-align:center; color:var(--gray-color); margin-bottom:25px;">
+                    We sent a 6-digit code to your email address.
+                    Enter it below to complete your login.
+                </p>
+ 
+                <form method="POST" action="{{ url_for('two_fa_verify_page') }}">
+                    <div class="form-group">
+                        <label for="code">Verification Code</label>
+                        <input type="text" name="code" id="code"
+                               maxlength="6" required autofocus
+                               placeholder="Enter 6-digit code"
+                               style="text-align:center; font-size:24px; letter-spacing:8px;">
+                        <small>Code expires in 10 minutes</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        Verify &amp; Login
+                    </button>
+                </form>
+ 
+                <div style="text-align:center; margin-top:20px;">
+                    <p>Didn't receive the code?
+                        <a href="#" id="resendBtn" style="color:var(--primary-color);">Resend code</a>
+                    </p>
+                    <p style="margin-top:10px;">
+                        <a href="{{ url_for('login_page') }}" style="color:var(--gray-color);">
+                            <i class="fas fa-arrow-left"></i> Back to Login
+                        </a>
+                    </p>
+                </div>
+ 
+                <div id="resendMessage" style="display:none; margin-top:10px;" class="alert alert-success">
+                    A new code has been sent to your email!
+                </div>
+                <div id="resendError" style="display:none; margin-top:10px;" class="alert alert-danger"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/2fa.js') }}"></script>
+{% endblock %}

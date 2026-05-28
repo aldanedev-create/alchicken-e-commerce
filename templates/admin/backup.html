@@ -1,0 +1,236 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}Backup & Restore - ALChicken{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Backup & Restore</h1>
+        <p>Manage your database backups</p>
+    </div>
+
+    <div class="backup-container">
+
+        <!-- Create Backup -->
+        <div class="backup-section">
+            <h2>Create Backup</h2>
+            <p>Create a full backup of your database including all orders, customers, and products.</p>
+            <form method="POST" action="{{ url_for('admin_create_backup') }}">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="include_uploads" checked>
+                        Include uploaded files (product images, payment proofs)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="backup_name">Backup Name (optional)</label>
+                    <input type="text" id="backup_name" name="backup_name"
+                           placeholder="Leave empty for auto-generated name">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-database"></i> Create Backup
+                </button>
+            </form>
+        </div>
+
+        <!-- Restore -->
+        <div class="backup-section">
+            <h2>Restore from Backup</h2>
+            <p class="warning">⚠️ Warning: Restoring will overwrite current data. This cannot be undone.</p>
+            <form method="POST" action="{{ url_for('admin_restore_backup') }}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="backup_file">Select Backup File</label>
+                    <input type="file" id="backup_file" name="backup_file" accept=".sql,.zip">
+                </div>
+                <button type="submit" class="btn btn-danger"
+                        onclick="return confirm('Are you sure? This will overwrite all current data.')">
+                    <i class="fas fa-undo-alt"></i> Restore Backup
+                </button>
+            </form>
+        </div>
+
+        <!-- Available Backups -->
+        <div class="backup-section">
+            <h2>Available Backups</h2>
+            {% if backups %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Backup Name</th>
+                        <th>Date Created</th>
+                        <th>Size</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for backup in backups %}
+                    <tr>
+                        <td>{{ backup.name }}</td>
+                        <td>{{ backup.date }}</td>
+                        <td>{{ backup.size }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_download_backup', filename=backup.filename) }}"
+                               class="btn-sm btn-primary">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                            <button class="btn-sm btn-danger"
+                                    data-filename="{{ backup.filename }}"
+                                    onclick="deleteBackup(this.dataset.filename)">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No backups available. Create your first backup above.</p>
+            {% endif %}
+        </div>
+
+        <!-- Export Data -->
+        <div class="backup-section">
+            <h2>Export Data</h2>
+            <div class="export-grid">
+                <a href="{{ url_for('admin_export_csv', type='customers') }}" class="export-card">
+                    <i class="fas fa-users"></i>
+                    <span>Export Customers</span>
+                </a>
+                <a href="{{ url_for('admin_export_csv', type='orders') }}" class="export-card">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Export Orders</span>
+                </a>
+                <a href="{{ url_for('admin_export_csv', type='products') }}" class="export-card">
+                    <i class="fas fa-drumstick-bite"></i>
+                    <span>Export Products</span>
+                </a>
+                <a href="{{ url_for('admin_export_csv', type='sales') }}" class="export-card">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Export Sales Report</span>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form[action*="restore"]');
+    const fileInput = document.getElementById('backup_file');
+    const restoreBtn = form.querySelector('button[type="submit"]');
+
+    // Remove the inline onclick so JS fully controls the flow
+    restoreBtn.removeAttribute('onclick');
+
+    // Show a live indicator when a file is chosen
+    fileInput.addEventListener('change', function () {
+        const file = this.files[0];
+        let indicator = form.querySelector('.file-indicator');
+
+        if (!indicator) {
+            indicator = document.createElement('p');
+            indicator.className = 'file-indicator';
+            this.insertAdjacentElement('afterend', indicator);
+        }
+
+        if (file) {
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            const ext    = file.name.split('.').pop().toLowerCase();
+            const valid  = ['zip', 'sql'].includes(ext);
+
+            indicator.style.color  = valid ? '#2e7d32' : '#c62828';
+            indicator.style.fontSize = '0.85rem';
+            indicator.style.marginTop = '6px';
+            indicator.textContent  = valid
+                ? `✔ ${file.name} (${sizeMB} MB) — ready to restore`
+                : `✘ Invalid file type ".${ext}". Only .zip or .sql files are accepted.`;
+        } else {
+            indicator.textContent = '';
+        }
+    });
+
+    // Full validation on submit
+    restoreBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        const file = fileInput.files[0];
+
+        // 1. File selected?
+        if (!file) {
+            showError('Please select a backup file before restoring.');
+            fileInput.focus();
+            return;
+        }
+
+        // 2. Valid extension?
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!['zip', 'sql'].includes(ext)) {
+            showError(`Invalid file type ".${ext}". Only .zip or .sql files are accepted.`);
+            fileInput.value = '';
+            fileInput.dispatchEvent(new Event('change'));
+            return;
+        }
+
+        // 3. Reasonable file size (cap at 500 MB)
+        const maxBytes = 500 * 1024 * 1024;
+        if (file.size > maxBytes) {
+            showError('File is too large (max 500 MB). Please check you selected the right file.');
+            return;
+        }
+
+        // 4. Final confirmation
+        const confirmMsg =
+            `You are about to restore from:\n\n` +
+            `  File : ${file.name}\n` +
+            `  Size : ${(file.size / (1024 * 1024)).toFixed(2)} MB\n\n` +
+            `⚠️  This will overwrite ALL current data and cannot be undone.\n\n` +
+            `Are you absolutely sure?`;
+
+        if (confirm(confirmMsg)) {
+            restoreBtn.disabled    = true;
+            restoreBtn.innerHTML   = '<i class="fas fa-spinner fa-spin"></i> Restoring…';
+            form.submit();
+        }
+    });
+
+    function showError(msg) {
+        let box = form.querySelector('.validation-error');
+        if (!box) {
+            box = document.createElement('p');
+            box.className = 'validation-error';
+            box.style.cssText = 'color:#c62828;background:#ffebee;border:1px solid #ef9a9a;' +
+                                'border-radius:6px;padding:10px 14px;margin-top:10px;font-size:0.9rem;';
+            restoreBtn.insertAdjacentElement('afterend', box);
+        }
+        box.textContent = '⚠ ' + msg;
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // Auto-clear after 5 s
+        setTimeout(() => { box.textContent = ''; }, 5000);
+    }
+});
+
+
+function deleteBackup(filename) {
+    if (confirm('Are you sure you want to delete this backup?')) {
+        fetch(`/admin/backup/delete/${filename}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) { location.reload(); }
+            else { alert('Error deleting backup: ' + (data.error || 'Unknown error')); }
+        })
+        .catch(() => alert('Connection error. Could not delete backup.'));
+    }
+}
+
+
+
+</script>
+
+{% endblock %}

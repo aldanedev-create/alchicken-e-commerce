@@ -1,0 +1,145 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}Manage Products - ALChicken{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Manage Products</h1>
+        <a href="{{ url_for('add_product') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Product
+        </a>
+    </div>
+
+    <div class="products-management">
+        <div class="filters">
+            <input type="text" id="searchProducts" placeholder="Search products..." class="search-input">
+            <select id="stockFilter" class="filter-select">
+                <option value="all">All Products</option>
+                <option value="low">Low Stock (&lt; 10)</option>
+                <option value="out">Out of Stock</option>
+                <option value="in">In Stock</option>
+            </select>
+        </div>
+
+        <div class="products-table-container">
+            <table class="data-table products-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Image</th>
+                        <th>Product Name</th>
+                        <th>Price (JMD)</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTableBody">
+                    {% for product in products %}
+                    <tr data-stock="{{ product.stock }}">
+                        <td>{{ product.product_id }}</td>
+                        <td class="product-image-cell">
+                            {% if product.image_url %}
+                            <img src="{{ url_for('static', filename='images/products/' + product.image_url) }}"
+                                 alt="{{ product.name }}" class="product-thumbnail">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='images/chicken-placeholder.jpg') }}"
+                                 alt="No image" class="product-thumbnail">
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ product.name }}</strong>
+                            <br>
+                            <small class="product-desc">{{ product.description[:50] if product.description else '' }}...</small>
+                        </td>
+                        <td class="price">JMD {{ "%.2f"|format(product.price) }}</td>
+                        <td class="stock-cell">
+                            <span class="stock-badge {% if product.stock < 10 %}low-stock{% endif %}">
+                                {{ product.stock }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if product.stock > 0 %}
+                                <span class="status-badge in-stock">In Stock</span>
+                            {% else %}
+                                <span class="status-badge out-of-stock">Out of Stock</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions-cell">
+                            <a href="{{ url_for('edit_product', product_id=product.product_id) }}"
+                               class="btn-sm btn-edit" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button class="btn-sm btn-delete"
+                                    data-product-id="{{ product.product_id }}"
+                                    data-product-name="{{ product.name | e }}"
+                                    title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="btn-sm btn-stock"
+                                    data-product-id="{{ product.product_id }}"
+                                    data-current-stock="{{ product.stock }}"
+                                    title="Update Stock">
+                                <i class="fas fa-boxes"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{# FIX 1: both modals now have style="display:none;" so they don't flash on page load #}
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Delete Product</h3>
+            <span class="close" id="closeDeleteModal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete <strong id="deleteProductName"></strong>?</p>
+            <p class="warning">This action cannot be undone. All associated data will be removed.</p>
+        </div>
+        <div class="modal-footer">
+            {# FIX 2: form has action="#" as safe default - JS sets the real URL before submit #}
+            <form id="deleteForm" method="POST" action="#">
+                <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+                <button type="submit" class="btn btn-danger">Delete Product</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Update Stock Modal -->
+<div id="stockModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Update Stock</h3>
+            <span class="close-stock" id="closeStockModal">&times;</span>
+        </div>
+        <div class="modal-body">
+    <form id="stockForm" method="POST" action="#">
+        <div class="form-group">
+            <label for="stockQuantity">New Stock Quantity</label>
+            <input type="number" id="stockQuantity" name="stock" min="0" required>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancelStockBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary">Update Stock</button>
+        </div>
+    </form>
+</div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/mng_products.js') }}"></script>
+
+{% endblock %}

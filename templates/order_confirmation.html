@@ -1,0 +1,104 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}Order Confirmation - ALChicken{% endblock %}
+
+{% block content %}
+<div class="confirmation-page">
+    <div class="container">
+        <div class="confirmation-card">
+            <div class="confirmation-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h1>Thank You for Your Order!</h1>
+            <p class="order-number">Order #{{ order.order_id }}</p>
+            <p class="confirmation-message">{{ processing_message }}</p>
+            
+            <div class="order-details">
+                <h2>Order Summary</h2>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <strong>Order Date:</strong>
+                        <span>{{ order.order_date }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Delivery Option:</strong>
+                        <span>{{ order.delivery_option|title }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Contact Number:</strong>
+                        <span>{{ order.contact_number }}</span>
+                    </div>
+                    {% if order.delivery_address %}
+                    <div class="detail-item">
+                        <strong>Delivery Address:</strong>
+                        <span>{{ order.delivery_address }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="items-list">
+                    <h3>Items Ordered</h3>
+                    <table class="order-items-table">
+                        <thead>
+                            <tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>JMD {{ "%.2f"|format(item.item_price) }}</td>
+                                <td>JMD {{ "%.2f"|format(item.item_price * item.quantity) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr><td colspan="3"><strong>Subtotal</strong></td><td>JMD {{ "%.2f"|format(order.total_amount - order.tax_amount) }}</td></tr>
+                            <tr><td colspan="3"><strong>GCT (15%)</strong></td><td>JMD {{ "%.2f"|format(order.tax_amount) }}</td></tr>
+                            <tr><td colspan="3"><strong>Total</strong></td><td><strong>JMD {{ "%.2f"|format(order.total_amount) }}</strong></td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <div class="payment-info">
+                    <h3>Payment Information</h3>
+                    <p><strong>Payment Method:</strong> {{ payment.payment_method|replace('_', ' ')|title }}</p>
+                    <p><strong>Payment Status:</strong> <span class="status-badge {{ payment.payment_status }}">{{ payment.payment_status }}</span></p>
+                    
+                    {% if payment.payment_method.startswith('bank_transfer') %}
+                    <div class="bank-details">
+                        <h4>Bank Transfer Details</h4>
+                        <p><strong>NCB Bank:</strong> Account: 123456789, Branch: Half-Way-Tree</p>
+                        <p><strong>Scotiabank:</strong> Account: 987654321, Branch: Kingston</p>
+                        <p><strong>JMMB Bank:</strong> Account: 456789123, Branch: New Kingston</p>
+                        <p><small>Please include your order number (#{{ order.order_id }}) as reference</small></p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+           
+<div class="customer-note-section" style="margin-top:30px; text-align:left;">
+    <h3>Add a Note to Your Order</h3>
+    <p style="color:var(--gray-color); font-size:14px; margin-bottom:10px;">
+        Special instructions, delivery notes, or anything you want us to know.
+        Your note saves automatically as you type.
+    </p>
+    <textarea id="customerNote" rows="3"
+              style="width:100%; padding:10px; border:1px solid var(--border-color);
+                     border-radius:5px; font-family:inherit; resize:vertical;"
+              placeholder="e.g. Please call before delivery, gate code is 1234...">{{ order.customer_note or '' }}</textarea>
+    <span id="noteSaved" style="display:none; font-size:13px; margin-top:5px; display:block;"></span>
+</div>
+            <div class="action-buttons">
+                <a href="{{ url_for('products_page') }}" class="btn btn-primary">Continue Shopping</a>
+                <a href="{{ url_for('order_tracking_page') }}" class="btn btn-secondary">Track Your Order</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/customer_note.js') }}"></script>
+{% endblock %}

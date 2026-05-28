@@ -1,0 +1,226 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}My Account - ALChicken{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>My Account</h1>
+        <p>Manage your profile and orders</p>
+    </div>
+</div>
+
+<div class="account-page">
+    <div class="container">
+        <div class="account-container">
+            <div class="account-sidebar">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <h3>{{ user.name }}</h3>
+                    <p>{{ user.email }}</p>
+                </div>
+                <ul class="account-menu">
+                    <li class="active" data-tab="profile">Profile Settings</li>
+                    <li data-tab="password">Change Password</li>
+                    <li data-tab="orders">My Orders</li>
+                    <li data-tab="security">Two-Step Verification</li> 
+                    <li data-tab="appearance">Appearance</li>
+                    <li data-tab="cookie">Cookie Usage</li> 
+                    <li data-tab="danger">Danger Zone</li>
+                </ul>
+            </div>
+            
+            <div class="account-content">
+                <div id="profile" class="tab-content active">
+                    <h2>Profile Information</h2>
+                    <form method="POST" action="{{ url_for('account_page') }}">
+                        <input type="hidden" name="action" value="update_profile">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" name="name" id="name" value="{{ user.name }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" value="{{ user.email }}" disabled>
+                            <small>Email cannot be changed</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" name="phone" id="phone" value="{{ user.phone or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <textarea name="address" id="address" rows="3">{{ user.address or '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </form>
+                </div>
+                
+                <div id="password" class="tab-content">
+                    <h2>Change Password</h2>
+                    <form method="POST" action="{{ url_for('account_page') }}">
+                        <input type="hidden" name="action" value="change_password">
+                        <div class="form-group">
+                            <label for="current_password">Current Password</label>
+                            <input type="password" name="current_password" id="current_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password">New Password</label>
+                            <input type="password" name="new_password" id="new_password" required>
+                            <small>Minimum 6 characters</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">Confirm New Password</label>
+                            <input type="password" name="confirm_password" id="confirm_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </form>
+                </div>
+                
+                <div id="orders" class="tab-content">
+                    <h2>My Orders</h2>
+                    {% if orders %}
+                    <div class="orders-list">
+                        {% for order in orders %}
+                        <div class="order-card">
+                            <div class="order-header">
+                                <span class="order-id">Order #{{ order.order_id }}</span>
+                                <span class="order-date">{{ order.order_date[:10] }}</span>
+                                <span class="order-status {{ order.order_status }}">{{ order.order_status }}</span>
+                            </div>
+                            <div class="order-details">
+                                <p>Total: JMD {{ "%.2f"|format(order.total_amount) }}</p>
+                                <p>Delivery: {{ order.delivery_option }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p>You haven't placed any orders yet.</p>
+                    <a href="{{ url_for('products_page') }}" class="btn btn-primary">Start Shopping</a>
+                    {% endif %}
+                </div>
+
+                <div id="security" class="tab-content">
+                    <h2>Two-Step Verification</h2>
+                    <p style="color:var(--gray-color); margin-bottom:20px;">
+                        Add an extra layer of security to your account. When enabled, you will
+                        be asked for a verification code sent to your email after entering your password.
+                    </p>
+
+                    {% if user.two_fa_enabled %}
+                    <div class="alert alert-success" style="margin-bottom:20px; padding: 15px; border-radius: 5px; background-color: #d4edda; color: #155724;">
+                        <i class="fas fa-check-circle"></i>
+                        Two-step verification is <strong>enabled</strong>.
+                        Verification codes are sent to <strong>{{ user.email }}</strong>.
+                    </div>
+
+                    <form method="POST" action="{{ url_for('two_fa_settings') }}">
+                        <input type="hidden" name="action" value="disable_2fa">
+                        <button type="submit" class="btn btn-danger"
+                                onclick="return confirm('Are you sure you want to disable two-step verification?')">
+                            <i class="fas fa-shield-alt"></i> Disable Two-Step Verification
+                        </button>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-warning" style="margin-bottom:20px; padding: 15px; border-radius: 5px; background-color: #fff3cd; color: #856404;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Two-step verification is <strong>disabled</strong>.
+                        Enable it to better protect your account.
+                    </div>
+
+                    <form method="POST" action="{{ url_for('two_fa_settings') }}">
+                        <input type="hidden" name="action" value="enable_2fa">
+                        <div class="form-group" style="margin-bottom:20px;">
+                            <p>
+                                <i class="fas fa-envelope" style="color:var(--primary-color);"></i>
+                                Verification codes will be sent to <strong>{{ user.email }}</strong>
+                            </p>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-shield-alt"></i> Enable Two-Step Verification
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                <div id="cookie" class="tab-content">
+    <h2>Cookie Usage</h2>
+
+    <p>
+        We use cookies to ensure the website functions properly, keep you logged in,
+        and improve your overall experience.
+    </p>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Cookie Name</th>
+                    <th>Purpose</th>
+                    <th>Type</th>
+                    <th>Duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>session</td>
+                    <td>Keeps you logged in and stores your cart and session data</td>
+                    <td>Essential</td>
+                    <td>Up to  365 days</td>
+                </tr>
+                <tr>
+                    <td>csrf_token</td>
+                    <td>Protects forms and prevents unauthorized requests</td>
+                    <td>Security</td>
+                    <td>Session</td>
+                </tr>
+                <tr>
+                    <td>preferences</td>
+                    <td>Stores your settings such as saved preferences</td>
+                    <td>Functional</td>
+                    <td>1 year</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="form-group" style="margin-top:20px;">
+        <label>Manage Cookies</label>
+        <p>You can control or delete cookies through your browser settings.</p>
+    </div>
+</div>
+
+                <div id="appearance" class="tab-content">
+                    <h2>Appearance Settings</h2>
+                    <div class="dark-mode-section">
+                        <div class="dark-mode-info">
+                            <p><strong>Dark Mode</strong></p>
+                            <span>Enjoy a darker interface for night time.</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="dark-mode-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="danger" class="tab-content">
+                    <h2>Delete Account</h2>
+                    <div class="danger-zone">
+                        <p><strong>Warning:</strong> This action cannot be undone. All your data including orders will be permanently deleted.</p>
+                        <form method="POST" action="{{ url_for('account_page') }}" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.')">
+                            <input type="hidden" name="action" value="delete_account">
+                            <button type="submit" class="btn btn-danger">Delete My Account</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/account.js') }}"></script>
+{% endblock %}

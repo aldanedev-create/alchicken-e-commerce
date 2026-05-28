@@ -1,0 +1,229 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}Order #{{ order.order_id }} - ALChicken{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Order Details #{{ order.order_id }}</h1>
+        <a href="{{ url_for('manage_orders') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+    </div>
+    
+    <div class="order-details">
+        <!-- Order Information -->
+        <div class="order-info-section">
+            <h2>Order Information</h2>
+            <div class="order-info-grid">
+                <div class="info-item">
+                    <strong>Order Date:</strong>
+                    <span>{{ order.order_date }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Customer Name:</strong>
+                    <span>{{ order.customer_name }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Email:</strong>
+                    <span style="font-size: 90%;">{{ order.customer_email }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Phone:</strong>
+                    <span>{{ order.customer_phone or 'Not provided' }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Delivery Option:</strong>
+                    <span class="delivery-badge {{ order.delivery_option }}">
+                        {{ order.delivery_option|title }}
+                    </span>
+                </div>
+                {% if order.delivery_address %}
+                <div class="info-item">
+                    <strong>Delivery Address:</strong>
+                    <span>{{ order.delivery_address }}</span>
+                </div>
+                {% endif %}
+                <div class="info-item">
+                    <strong>Contact Number:</strong>
+                    <span>{{ order.contact_number }}</span>
+                </div>
+                {% if order.customer_note %}
+<div class="info-item">
+    <strong>Customer Note:</strong>
+    <span style="color:var(--warning-color);">
+        <i class="fas fa-sticky-note"></i> {{ order.customer_note }}
+    </span>
+</div>
+{% endif %}
+            </div>
+        </div>
+        
+        <!-- Order Items -->
+        <div class="order-items-section">
+            <h2>Order Items</h2>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>JMD {{ "%.2f"|format(item.item_price) }}</td>
+                        <td>JMD {{ "%.2f"|format(item.item_price * item.quantity) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3"><strong>Subtotal</strong></td>
+                        <td>JMD {{ "%.2f"|format(order.total_amount - order.tax_amount) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"><strong>GCT (15%)</strong></td>
+                        <td>JMD {{ "%.2f"|format(order.tax_amount) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"><strong>Total</strong></td>
+                        <td><strong>JMD {{ "%.2f"|format(order.total_amount) }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <!-- Payment Information -->
+        <div class="payment-section">
+            <h2>Payment Information</h2>
+            <div class="payment-grid">
+                <div class="info-item">
+                    <strong>Payment Method:</strong>
+                    <span>{{ payment.payment_method|replace('_', ' ')|title }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Payment Status:</strong>
+                    <span class="payment-badge {{ payment.payment_status }}">
+                        {{ payment.payment_status|title }}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <strong>Payment Date:</strong>
+                    <span>{{ payment.payment_date or 'Not processed yet' }}</span>
+                </div>
+                {% if payment.payment_proof_file %}
+                <div class="info-item">
+                    <strong>Payment Proof:</strong>
+                    <a href="/admin/payment-proof/{{ payment.payment_proof_file }}"
+   target="_blank" class="btn-link">
+    <i class="fas fa-file"></i> View Proof
+</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Update Status -->
+        <div class="update-status-section">
+            <h2>Update Order Status</h2>
+            <form method="POST" action="{{ url_for('update_order_status', order_id=order.order_id) }}" 
+                  class="status-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="order_status">Order Status</label>
+                        <select name="order_status" id="order_status" class="status-select">
+                            <option value="pending" {% if order.order_status == 'pending' %}selected{% endif %}>
+                                Pending
+                            </option>
+                            <option value="processing" {% if order.order_status == 'processing' %}selected{% endif %}>
+                                Processing
+                            </option>
+                            <option value="ready_for_pickup" {% if order.order_status == 'ready_for_pickup' %}selected{% endif %}>
+                                Ready for Pickup
+                            </option>
+                            <option value="ready_for_delivery" {% if order.order_status == 'ready_for_delivery' %}selected{% endif %}>
+                                Ready for Delivery
+                            </option>
+                            <option value="completed" {% if order.order_status == 'completed' %}selected{% endif %}>
+                                Completed
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="payment_status">Payment Status</label>
+                        <select name="payment_status" id="payment_status" class="status-select">
+                            <option value="pending" {% if payment.payment_status == 'pending' %}selected{% endif %}>
+                                Pending
+                            </option>
+                            <option value="confirmed" {% if payment.payment_status == 'confirmed' %}selected{% endif %}>
+                                Confirmed
+                            </option>
+                            <option value="failed" {% if payment.payment_status == 'failed' %}selected{% endif %}>
+                                Failed
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Update Status
+                </button>
+            </form>
+        </div>
+
+    <!-- Customer's Note (read-only - submitted by the customer) -->
+{% if order.customer_note %}
+<div class="order-info-section" style="margin-bottom:20px;">
+    <h2>Customer's Note</h2>
+    <div style="padding:15px; background:#fff8f0; border-left:4px solid var(--primary-color); 
+                border-radius:5px; color:var(--dark-color);">
+        <i class="fas fa-user" style="color:var(--primary-color); margin-right:8px;"></i>
+        {{ order.customer_note }}
+    </div>
+</div>
+{% endif %}
+
+<div class="customer-note">
+    <h2>Admin Note</h2>
+    <!-- Hidden field so JS knows which order to save to -->
+    <input type="hidden" id="orderId" value="{{ order.order_id }}">
+    <textarea id="customerNote" rows="3"
+              placeholder="Add a note about this order...">{{ order.note or '' }}</textarea>
+    <button class="btn btn-secondary" onclick="saveNote()">Save Note</button>
+    <span id="noteSaved" style="display:none; color:var(--success-color); margin-left:10px;">
+        <i class="fas fa-check"></i> Saved
+    </span>
+</div>
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            {% if order.delivery_option == 'delivery' and order.order_status != 'completed' %}
+            <button class="btn btn-success" onclick="markAsDelivered()">
+                <i class="fas fa-truck"></i> Mark as Delivered
+            </button>
+            {% endif %}
+            
+            {% if order.delivery_option == 'pickup' and order.order_status == 'ready_for_pickup' %}
+            <button class="btn btn-success" onclick="markAsPickedUp()">
+                <i class="fas fa-store"></i> Mark as Picked Up
+            </button>
+            {% endif %}
+            
+            <button class="btn btn-info" onclick="printOrder()">
+                <i class="fas fa-print"></i> Print Order
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/order-details.js') }}"></script>
+{% endblock %}

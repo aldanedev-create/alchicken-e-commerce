@@ -1,0 +1,131 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}Contact Us - ALChicken{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Contact Us</h1>
+        <p>Get in touch with the farmer directly</p>
+    </div>
+</div>
+
+<div class="contact-page">
+    <div class="container">
+        <div class="contact-container">
+            <div class="contact-info">
+                <h2>Get in Touch</h2>
+                <div class="info-item">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <strong>Phone</strong>
+                        <p><a href="tel:{{ farmer_number }}">{{ farmer_number }}</a></p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <strong>Email</strong>
+                        <p>adminalchicken@gmail.com</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <strong>Location</strong>
+                        <p>Kingston, Jamaica</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <strong>Business Hours</strong>
+                        <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
+                        <p>Saturday: 9:00 AM - 4:00 PM</p>
+                        <p>Sunday: 9:00 AM - 4:00 PM</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contact-form">
+                <h2>Send Us a Message</h2>
+
+                <!-- Status message shown by JS -->
+                <div id="formMessage" style="display:none;" class="alert"></div>
+
+                <!-- 
+                    Web3Forms free plan = client-side only.
+                    Form submits to Web3Forms via JS (sends email to Gmail),
+                    then JS calls /contact/save to store in the database.
+                -->
+                <form id="contactForm" 
+      action="https://api.web3forms.com/submit" 
+      method="POST">
+
+    <input type="hidden" name="access_key" value="f4ea7d86-d20d-4faa-bb84-f23d9f015f24">
+    <input type="hidden" name="from_name" value="ALChicken Website">
+
+    <!-- Honeypot -->
+    <input type="checkbox" name="botcheck" style="display:none;">
+
+    <div class="form-group">
+        <label>Your Name *</label>
+        <input type="text" name="name" id="name" required>
+    </div>
+
+    <div class="form-group">
+        <label>Email Address *</label>
+        <input type="email" name="email" id="email" required>
+    </div>
+
+    <div class="form-group">
+        <label>Subject</label>
+        <input type="text" name="subject" id="subject">
+    </div>
+
+    <div class="form-group">
+        <label>Message *</label>
+        <textarea name="message" id="message" rows="5" required></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary" id="submitBtn">
+        Send Message
+    </button>
+</form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('contactForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const form    = this;
+    const name    = document.getElementById('name').value.trim();
+    const email   = document.getElementById('email').value.trim();
+    const subject = document.getElementById('subject').value.trim() || 'Inquiry';
+    const message = document.getElementById('message').value.trim();
+
+    // Save to database (runs in background, silent)
+    fetch('/contact/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, subject, message })
+    })
+    .then(res => res.json())
+    .then(data => console.log('Saved to DB:', data))
+    .catch(err => console.warn('DB error:', err));
+
+    // Let Web3Forms handle submission and show its own message
+    form.submit();
+
+    // Reset form after short delay
+    setTimeout(() => {
+        form.reset();
+    }, 500);
+});
+</script>
+{% endblock %}

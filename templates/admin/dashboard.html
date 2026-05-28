@@ -1,0 +1,151 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}Admin Dashboard - ALChicken{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Welcome, {{ session.user_name }}</h1>
+        <p>Manage your chicken farm business from here</p>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <i class="fas fa-shopping-cart"></i>
+            <h3>Total Orders</h3>
+            <p class="stat-number">{{ stats.total_orders }}</p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-clock"></i>
+            <h3>Pending Orders</h3>
+            <p class="stat-number {% if stats.pending_orders > 0 %}warning{% endif %}">
+                {{ stats.pending_orders }}
+            </p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-drumstick-bite"></i>
+            <h3>Total Products</h3>
+            <p class="stat-number">{{ stats.total_products }}</p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Low Stock Items</h3>
+            <p class="stat-number {% if stats.low_stock > 0 %}danger{% endif %}">
+                {{ stats.low_stock }}
+            </p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-calendar-day"></i>
+            <h3>Today's Orders</h3>
+            <p class="stat-number">{{ stats.today_orders }}</p>
+        </div>
+    </div>
+    
+    <div class="dashboard-sections">
+        <!-- Recent Orders -->
+        <div class="recent-orders">
+            <h2>
+                Recent Orders
+                <a href="{{ url_for('manage_orders') }}" class="btn-link">View All</a>
+            </h2>
+            {% if recent_orders %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td>#{{ order.order_id }}</td>
+                        <td>{{ order.customer_name }}</td>
+                        <td>{{ order.order_date[:10] }}</td>
+                        <td>JMD {{ "%.2f"|format(order.total_amount) }}</td>
+                        <td>
+                            <span class="status-badge status-{{ order.order_status }}">
+                                {{ order.order_status|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('view_order_details', order_id=order.order_id) }}" 
+                               class="btn-sm btn-view">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="no-data">No orders yet</p>
+            {% endif %}
+        </div>
+        
+        <!-- Recent Messages -->
+        <div class="recent-messages">
+            <h2>Recent Messages</h2>
+            {% if recent_messages %}
+            <div class="messages-list">
+                {% for message in recent_messages %}
+                <div class="message-item {% if not message.is_read %}unread{% endif %}">
+                    <div class="message-header">
+                        <strong>{{ message.name }}</strong>
+                        <span class="message-date">{{ message.message_date[:10] }}</span>
+                    </div>
+                    <div class="message-subject">{{ message.subject }}</div>
+                    <div class="message-preview">{{ message.message[:100] }}...</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="no-data">No messages yet</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h2>Quick Actions</h2>
+        <div class="actions-grid">
+            <a href="{{ url_for('add_product') }}" class="action-card">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add New Product</span>
+            </a>
+            <a href="{{ url_for('manage_orders') }}" class="action-card">
+                <i class="fas fa-truck"></i>
+                <span>Process Orders</span>
+            </a>
+            <a href="{{ url_for('manage_products') }}" class="action-card">
+                <i class="fas fa-boxes"></i>
+                <span>Update Inventory</span>
+            </a>
+            <a href="{{ url_for('manage_customers') }}" class="action-card">
+                <i class="fas fa-users"></i>
+                <span>Manage Customers</span>
+            </a>
+             <a href="{{ url_for('admin_backup_page') }}" class="action-card">
+                <i class="fas fa-database"></i>
+                <span>Backup/Exports</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Auto-refresh pending orders count (optional)
+    setInterval(function() {
+        fetch('/admin/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.querySelector('.stat-card .stat-number.warning').textContent = data.pending_orders;
+            });
+    }, 30000); // Refresh every 30 seconds
+</script>
+{% endblock %}

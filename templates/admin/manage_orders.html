@@ -1,0 +1,97 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}Manage Orders - ALChicken{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Manage Orders</h1>
+        <div class="header-stats">
+            <span class="badge">Total: {{ orders|length }}</span>
+        </div>
+    </div>
+    
+    <div class="orders-management">
+        <div class="filters">
+            <select id="statusFilter" class="filter-select">
+                <option value="all">All Orders</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="ready_for_pickup">Ready for Pickup</option>
+                <option value="ready_for_delivery">Ready for Delivery</option>
+                <option value="completed">Completed</option>
+            </select>
+            
+            <input type="text" id="searchOrders" placeholder="Search by order ID or customer..." class="search-input">
+            
+            <select id="dateFilter" class="filter-select">
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+            </select>
+        </div>
+        
+        <div class="orders-table-container">
+            <table class="data-table orders-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Delivery</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                    {% for order in orders %}
+                    <tr data-status="{{ order.order_status }}" 
+                        data-date="{{ order.order_date[:10] }}"
+                        data-order-id="{{ order.order_id }}">
+                        <td>#{{ order.order_id }}</td>
+                        <td>
+                            <strong>{{ order.customer_name }}</strong>
+                            <br>
+                            <small>{{ order.customer_email }}</small>
+                        </td>
+                        <td>{{ order.order_date[:10] }}<br>
+                            <small>{{ order.order_date[11:16] }}</small>
+                        </td>
+                        <td class="price">JMD {{ "%.2f"|format(order.total_amount) }}</td>
+                        <td>
+                            <span class="delivery-badge {{ order.delivery_option }}">
+                                {{ order.delivery_option|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="payment-badge {{ order.payment_status }}">
+                                {{ order.payment_status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ order.order_status }}">
+                                {{ order.order_status|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('view_order_details', order_id=order.order_id) }}" 
+                               class="btn-sm btn-view">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/mng_orders.js') }}"></script>
+{% endblock %}

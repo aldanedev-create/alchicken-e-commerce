@@ -1,0 +1,32 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}Track Order - ALChicken{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Track Your Order</h1>
+        <p>Enter your order number and email to check status</p>
+    </div>
+</div>
+
+<div class="tracking-page">
+    <div class="container">
+        <div class="tracking-container">
+            <form method="POST" action="{{ url_for('track_order') }}" class="tracking-form">
+                <div class="form-group">
+                    <label for="order_number">Order Number</label>
+                    <input type="text" name="order_number" id="order_number" required placeholder="Enter order number">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" name="email" id="email" required placeholder="Enter email used for order">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">Track Order</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}About Us - ALChicken{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>About ALChicken</h1>
+        <p>Supporting local Jamaican farming for some time❤️</p>
+    </div>
+</div>
+
+<div class="about-page">
+    <div class="container">
+        <div class="about-story">
+            <div class="story-image">
+<img src="{{ url_for('static', filename='images/Althea-Farmer.jpg') }}" 
+     alt="Farmer Althea Hutchinson"
+     style="width: 300px; height: 300px; object-fit: cover; border-radius: 8px;">            </div>
+            <div class="story-content">
+                <h2>Our Story</h2>
+                <p>ALChicken was founded by {{ farmer_name }} , a  dedicated farmer with over {{ farming_years }} years of experience raising chickens in {{ location }}. What started as a small family farm has grown into a trusted source of fresh, high-quality chickens for the local community.</p>
+                <p>Our mission is to provide Jamaican families with the freshest, healthiest chickens while supporting sustainable farming practices and the local economy.</p>
+                <p>We believe in transparency, quality, and building lasting relationships with our customers. Every chicken you purchase from ALChicken comes directly from our farm to your table.</p>
+            </div>
+        </div>
+        
+        <div class="farming-practices">
+            <h2>Our Farming Practices</h2>
+            <div class="practices-grid">
+                <div class="practice">
+                    <i class="fas fa-seedling"></i>
+                    <h3>Free Range</h3>
+                    <p>Our chickens are raised in open, spacious environments where they can roam freely and live naturally.</p>
+                </div>
+                <div class="practice">
+                    <i class="fas fa-apple-alt"></i>
+                    <h3>Natural Feed</h3>
+                    <p>We use only natural, locally-sourced feed with no hormones or unnecessary antibiotics.</p>
+                </div>
+                <div class="practice">
+                    <i class="fas fa-tint"></i>
+                    <h3>Clean Water</h3>
+                    <p>Our chickens have access to clean, filtered water at all times, ensuring their health and well-being.</p>
+                </div>
+                <div class="practice">
+                    <i class="fas fa-heart"></i>
+                    <h3>Humane Treatment</h3>
+                    <p>We follow strict animal welfare standards, treating our chickens with care and respect throughout their lives.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="quality-commitment">
+            <h2>Our Commitment to Quality</h2>
+            <div class="quality-grid">
+                <div class="quality-item">
+                    <i class="fas fa-check-circle"></i>
+                    <p>Farm-fresh, never frozen</p>
+                </div>
+                <div class="quality-item">
+                    <i class="fas fa-check-circle"></i>
+                    <p>Processed daily for maximum freshness</p>
+                </div>
+                <div class="quality-item">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No artificial preservatives</p>
+                </div>
+                <div class="quality-item">
+                    <i class="fas fa-check-circle"></i>
+                    <p>Locally raised and processed</p>
+                </div>
+                <div class="quality-item">
+                    <i class="fas fa-check-circle"></i>
+                    <p>Traceable from farm to table</p>
+                </div>
+                <div class="quality-item">
+                    <i class="fas fa-check-circle"></i>
+                    <p>annual health inspections</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

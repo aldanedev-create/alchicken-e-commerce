@@ -1,0 +1,82 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}Admin Audit Logs - ALChicken{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+
+    <div class="admin-header">
+        <h1>Admin Audit Logs</h1>
+        <span class="badge">Last 200 actions</span>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+
+        <form method="GET" class="filter-form">
+
+            <input type="text"
+                   name="search"
+                   placeholder="Search admin, action, user..."
+                   value="{{ request.args.get('search', '') }}"
+                   class="search-input">
+
+            <select name="action" class="filter-select">
+                <option value="all">All Actions</option>
+                <option value="block_user">Block User</option>
+                <option value="unblock_user">Unblock User</option>
+                <option value="delete_user">Delete User</option>
+                <option value="delete_order">Delete Order</option>
+                <option value="login">Admin Login</option>
+                <option value="update_order">Update Order</option>
+            </select>
+
+            <button class="btn btn-primary">Filter</button>
+        </form>
+    </div>
+
+    <!-- Logs Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Admin</th>
+                    <th>Action</th>
+                    <th>Target</th>
+                    <th>Target ID</th>
+                    <th>Details</th>
+                    <th>IP</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.created_at }}</td>
+                    <td><strong>{{ log.admin_name }}</strong></td>
+
+                    <td>
+                        <span class="status-badge">
+                            {{ log.action }}
+                        </span>
+                    </td>
+
+                    <td>{{ log.target_type }}</td>
+                    <td>#{{ log.target_id or '-' }}</td>
+                    <td>{{ log.details or '-' }}</td>
+                    <td>{{ log.ip_address or '-' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center">
+                        No logs found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

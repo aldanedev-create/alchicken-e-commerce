@@ -1,0 +1,149 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}Checkout - ALChicken{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Checkout</h1>
+        <p>Complete your order</p>
+    </div>
+</div>
+
+<div class="checkout-page">
+    <div class="container">
+        <form method="POST" action="{{ url_for('process_checkout') }}" enctype="multipart/form-data" id="checkoutForm">
+            <div class="checkout-container">
+                <div class="checkout-form">
+                    <div class="form-section">
+                        <h3>Delivery Options</h3>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="delivery_option" value="pickup" checked>
+                                Pickup from Farm
+                            </label>
+                            <label>
+                                <input type="radio" name="delivery_option" value="delivery">
+                                Delivery (JMD 500)
+                            </label>
+                        </div>
+                        
+                        <div id="deliveryAddress" style="display: none;">
+                            <label for="delivery_address">Delivery Address</label>
+                            <textarea name="delivery_address" id="delivery_address" rows="3" placeholder="Enter your delivery address"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>Contact Information</h3>
+                        <div class="form-group">
+                            <label for="contact_number">Contact Number *</label>
+                            <input type="tel" name="contact_number" id="contact_number" value="{{ user.phone }}" required placeholder="876-XXX-XXXX">
+                            <small>Jamaica format: 876-123-4567</small>
+                        </div>
+                    </div>
+                    <div class="form-section">
+    <h3>Payment Method</h3>
+
+    <!-- ✅ ONLY PAYMENT OPTIONS HERE -->
+    <div class="payment-methods">
+        {% for method in payment_methods %}
+        <label class="payment-option">
+            <input type="radio" name="payment_method" value="{{ method }}" required>
+            <span>
+                {% if method == 'bank_transfer_ncb' %}
+                    <i class="fas fa-university"></i> NCB Bank Transfer
+                {% elif method == 'bank_transfer_scotiabank' %}
+                    <i class="fas fa-university"></i> Scotiabank Transfer
+                {% elif method == 'bank_transfer_jmmb' %}
+                    <i class="fas fa-university"></i> JMMB Bank Transfer
+                {% elif method == 'paypal' %}
+                    <i class="fab fa-paypal"></i> PayPal
+                {% else %}
+                    <i class="fas fa-money-bill-wave"></i> Cash on Delivery/Pickup
+                {% endif %}
+            </span>
+        </label>
+        {% endfor %}
+    </div>
+
+    <!-- ✅ ONE BANK DETAILS BLOCK -->
+    <div id="bankDetails" style="display: none;">
+        <h4>Bank Transfer Details</h4>
+
+        <div id="ncbDetails" class="bank-info" style="display:none;">
+            <p><strong>Bank:</strong> NCB</p>
+            <p><strong>Account Name:</strong> ALChicken</p>
+            <p><strong>Account Number:</strong> 123456789</p>
+            <p><strong>Branch:</strong> Half Way Tree</p>
+        </div>
+
+        <div id="scotiaDetails" class="bank-info" style="display:none;">
+            <p><strong>Bank:</strong> Scotiabank</p>
+            <p><strong>Account Name:</strong> ALChicken</p>
+            <p><strong>Account Number:</strong> 987654321</p>
+            <p><strong>Branch:</strong> Kingston</p>
+        </div>
+
+        <div id="jmmbDetails" class="bank-info" style="display:none;">
+            <p><strong>Bank:</strong> JMMB</p>
+            <p><strong>Account Name:</strong> ALChicken</p>
+            <p><strong>Account Number:</strong> 555666777</p>
+        </div>
+    </div>
+
+    <!-- ✅ PAYPAL DETAILS BLOCK -->
+<div id="paypalDetails" class="bank-info" style="display:none;">
+    <h4>PayPal Details</h4>
+    <p><strong>PayPal Email:</strong> payments@alchicken.com</p>
+    <p><strong>Account Name:</strong> ALChicken</p>
+    <p style="margin-top:10px; color:#555; font-size:0.9rem;">
+        ℹ️ Send the exact order total to the PayPal email above, then upload
+        your payment screenshot below as proof.
+    </p>
+</div>
+    <!-- ✅ ONE PAYMENT PROOF -->
+    <div id="paymentProof" style="display: none;">
+        <label for="payment_proof">Upload Payment Confirmation</label>
+        <input type="file" name="payment_proof" id="payment_proof" accept="image/*,.pdf">
+        <small>Upload screenshot or photo of bank transfer confirmation</small>
+    </div>
+</div>
+                
+                <div class="order-summary">
+                    <h3>Order Summary</h3>
+                    {% for item in cart %}
+                    <div class="summary-item">
+                        <span>{{ item.name }} x {{ item.quantity }}</span>
+                        <span>JMD {{ "%.2f"|format(item.price * item.quantity) }}</span>
+                    </div>
+                    {% endfor %}
+                    <div class="summary-divider"></div>
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span>JMD {{ "%.2f"|format(totals.subtotal) }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>GCT (15%):</span>
+                        <span>JMD {{ "%.2f"|format(totals.tax) }}</span>
+                    </div>
+                    <div class="summary-row" id="deliveryFeeRow">
+                        <span>Delivery Fee:</span>
+                        <span>JMD {{ "%.2f"|format(totals.delivery_fee) }}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span>JMD {{ "%.2f"|format(totals.total) }}</span>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-place-order">Place Order</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
+{% endblock %}

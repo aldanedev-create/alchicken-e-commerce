@@ -1,0 +1,144 @@
+{% extends "includes/header-footer.html" %}
+
+{% block title %}Manage Customers - ALChicken{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Manage Customers</h1>
+        <div class="header-stats">
+            <span class="badge">Total Customers: {{ customers|length }}</span>
+        </div>
+    </div>
+
+    <div class="customers-management">
+        <div class="filters">
+            <input type="text" id="searchCustomers" placeholder="Search by name or email..." class="search-input">
+            <select id="orderFilter" class="filter-select">
+                <option value="all">All Customers</option>
+                <option value="has_orders">Has Orders</option>
+                <option value="no_orders">No Orders</option>
+            </select>
+        </div>
+
+        <div class="customers-table-container">
+            <table class="data-table customers-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Contact</th>
+                        <th>Orders</th>
+                        <th>Total Spent</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="customersTableBody">
+                    {% for customer in customers %}
+                    <tr data-order-count="{{ customer.order_count }}">
+                        <td>{{ customer.user_id }}</td>
+                        <td>
+                            <strong>{{ customer.name }}</strong>
+                            <br>
+                            <small>{{ customer.email }}</small>
+                        </td>
+                        <td>
+                            {% if customer.phone %}
+                            <i class="fas fa-phone"></i> {{ customer.phone }}<br>
+                            {% endif %}
+                            {% if customer.address %}
+                            <i class="fas fa-map-marker-alt"></i> {{ customer.address[:30] }}{% if customer.address|length > 30 %}...{% endif %}
+                            {% endif %}
+                            {% if not customer.phone and not customer.address %}
+                            <span class="text-muted">No contact info</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <span class="order-count-badge">{{ customer.order_count }}</span>
+                        </td>
+                        <td class="price">
+                            JMD {{ "%.2f"|format(customer.total_spent or 0) }}
+                        </td>
+                        <td>
+                            {{ customer.created_at[:10] if customer.created_at else 'N/A' }}
+                        </td>
+                        <td class="actions-cell">
+                            {# FIX 1: escape the customer name to prevent JS breaking if name has apostrophe e.g. O'Brien #}
+                            <button class="btn-sm btn-view"
+                                    onclick="viewCustomer({{ customer.user_id }})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+
+                           
+                           
+                            <button class="btn-sm btn-delete"   
+                                    onclick="deleteCustomer({{ customer.user_id }}, '{{ customer.name | replace("'", "\\'") }}')"
+                                    title="Delete Customer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <!-- its fine -->
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center no-data">
+                            <i class="fas fa-users"></i>
+                            <p>No customers found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{# FIX 2: modals must be INSIDE {% block content %} not outside it #}
+
+<!-- View Customer Modal -->
+<div id="viewCustomerModal" class="modal" style="display:none;">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3>Customer Details</h3>
+            <!-- its fine -->
+            <span class="close" onclick="closeViewModal()">&times;</span>   <!-- its fine -->
+        </div>
+        <div class="modal-body" id="customerDetails">
+            <div class="loading">Loading...</div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeViewModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Delete Customer</h3>
+            <span class="close" onclick="closeDeleteModal()">&times;</span>
+            <!-- its fine -->
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete <strong id="deleteCustomerName"></strong>?</p>
+            <p class="warning">⚠️ This action cannot be undone. All orders and data associated with this customer will be permanently deleted.</p>
+        </div>
+        <div class="modal-footer">
+            {# FIX 3: form needs action attribute - customers.js sets it dynamically but #}
+            {# we need a fallback action so the form is valid HTML #}
+            <form id="deleteCustomerForm" method="POST" action="#">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger">Delete Customer</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/customers.js') }}"></script>
+{% endblock %}
